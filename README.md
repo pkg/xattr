@@ -1,3 +1,6 @@
+[![GoDoc](https://godoc.org/github.com/pkg/xattr?status.svg)](http://godoc.org/github.com/pkg/xattr)
+[![Build Status](https://travis-ci.org/pkg/xattr.svg?branch=master)](https://travis-ci.org/pkg/xattr)
+
 xattr
 =====
 Extended attribute support for Go (linux + darwin + freebsd).
