@@ -18,7 +18,10 @@ func getxattr(path string, name string, value *byte, size int, pos int, options 
 
 func listxattr(path string, namebuf *byte, size int, options int) (int, error) {
 	r0, _, e1 := syscall.Syscall6(syscall.SYS_LISTXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))), uintptr(unsafe.Pointer(namebuf)), uintptr(size), uintptr(options), 0, 0)
-	return int(r0), e1
+	if e1 != syscall.Errno(0) {
+		return int(r0), e1
+	}
+	return int(r0), nil
 }
 
 func setxattr(path string, name string, value *byte, size int, pos int, options int) error {
