@@ -17,13 +17,16 @@ func Getxattr(path, name string) ([]byte, error) {
 	if err != nil {
 		return nil, &XAttrError{"extattr_get_file", path, name, err}
 	}
-	buf := make([]byte, size)
-	// Read into buffer of that size.
-	read, err := extattr_get_file(path, EXTATTR_NAMESPACE_USER, name, &buf[0], size)
-	if err != nil {
-		return nil, &XAttrError{"extattr_get_file", path, name, err}
+	if size > 0 {
+		buf := make([]byte, size)
+		// Read into buffer of that size.
+		read, err := extattr_get_file(path, EXTATTR_NAMESPACE_USER, name, &buf[0], size)
+		if err != nil {
+			return nil, &XAttrError{"extattr_get_file", path, name, err}
+		}
+		return buf[:read], nil
 	}
-	return buf[:read], nil
+	return []byte{}, nil
 }
 
 // Retrieves a list of names of extended attributes associated with the
@@ -34,13 +37,16 @@ func Listxattr(path string) ([]string, error) {
 	if err != nil {
 		return nil, &XAttrError{"extattr_list_file", path, "", err}
 	}
-	buf := make([]byte, size)
-	// Read into buffer of that size.
-	read, err := extattr_list_file(path, EXTATTR_NAMESPACE_USER, &buf[0], size)
-	if err != nil {
-		return nil, &XAttrError{"extattr_list_file", path, "", err}
+	if size > 0 {
+		buf := make([]byte, size)
+		// Read into buffer of that size.
+		read, err := extattr_list_file(path, EXTATTR_NAMESPACE_USER, &buf[0], size)
+		if err != nil {
+			return nil, &XAttrError{"extattr_list_file", path, "", err}
+		}
+		return attrListToStrings(buf[:read]), nil
 	}
-	return attrListToStrings(buf[:read]), nil
+	return []string{}, nil
 }
 
 // Associates name and data together as an attribute of path.

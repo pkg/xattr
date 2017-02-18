@@ -9,13 +9,16 @@ func Getxattr(path, name string) ([]byte, error) {
 	if err != nil {
 		return nil, &XAttrError{"getxattr", path, name, err}
 	}
-	buf := make([]byte, size)
-	// Read into buffer of that size.
-	read, err := getxattr(path, name, &buf[0], size, 0, 0)
-	if err != nil {
-		return nil, &XAttrError{"getxattr", path, name, err}
+	if size > 0 {
+		buf := make([]byte, size)
+		// Read into buffer of that size.
+		read, err := getxattr(path, name, &buf[0], size, 0, 0)
+		if err != nil {
+			return nil, &XAttrError{"getxattr", path, name, err}
+		}
+		return buf[:read], nil
 	}
-	return buf[:read], nil
+	return []byte{}, nil
 }
 
 // Retrieves a list of names of extended attributes associated with the
@@ -26,17 +29,17 @@ func Listxattr(path string) ([]string, error) {
 	if err != nil {
 		return nil, &XAttrError{"listxattr", path, "", err}
 	}
-	if size == 0 {
-		return []string{}, nil
-	}
+	if size > 0 {
 
-	buf := make([]byte, size)
-	// Read into buffer of that size.
-	read, err := listxattr(path, &buf[0], size, 0)
-	if err != nil {
-		return nil, &XAttrError{"listxattr", path, "", err}
+		buf := make([]byte, size)
+		// Read into buffer of that size.
+		read, err := listxattr(path, &buf[0], size, 0)
+		if err != nil {
+			return nil, &XAttrError{"listxattr", path, "", err}
+		}
+		return nullTermToStrings(buf[:read]), nil
 	}
-	return nullTermToStrings(buf[:read]), nil
+	return []string{}, nil
 }
 
 // Associates name and data together as an attribute of path.
