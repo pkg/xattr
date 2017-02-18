@@ -23,6 +23,22 @@ func Test_setxattr(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	list, err := Listxattr(tmp.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	found := false
+	for _, name := range list {
+		if name == UserPrefix+"test" {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("Listxattr did not return test attribute")
+	}
+
 	var data []byte
 	data, err = Getxattr(tmp.Name(), UserPrefix+"test")
 	if err != nil {
@@ -32,5 +48,10 @@ func Test_setxattr(t *testing.T) {
 	t.Log(value)
 	if "test-attr-value" != value {
 		t.Fail()
+	}
+
+	err = Removexattr(tmp.Name(), UserPrefix+"test")
+	if err != nil {
+		t.Fatal(err)
 	}
 }
