@@ -18,4 +18,4 @@ install:
 
 script:
   - go test
-  - diff <(GOPATH="$PWD:$PWD/vendor" goimports -d ./src) <(printf "")
+  - diff <(GOPATH="$PWD:$PWD/vendor" goimports -d .) <(printf "")
