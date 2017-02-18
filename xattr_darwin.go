@@ -26,6 +26,10 @@ func Listxattr(path string) ([]string, error) {
 	if err != nil {
 		return nil, &XAttrError{"listxattr", path, "", err}
 	}
+	if size == 0 {
+		return []string{}, nil
+	}
+
 	buf := make([]byte, size)
 	// Read into buffer of that size.
 	read, err := listxattr(path, &buf[0], size, 0)
