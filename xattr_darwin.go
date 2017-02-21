@@ -21,7 +21,7 @@ func Getxattr(path, name string) ([]byte, error) {
 	return []byte{}, nil
 }
 
-// Listxattr retrieves a list of names of extended attributes associated 
+// Listxattr retrieves a list of names of extended attributes associated
 // with the given path in the file system.
 func Listxattr(path string) ([]string, error) {
 	// find size.
@@ -50,7 +50,7 @@ func Setxattr(path, name string, data []byte) error {
 	return nil
 }
 
-// Removexattr removes the attribute associated with the given path. 
+// Removexattr removes the attribute associated with the given path.
 func Removexattr(path, name string) error {
 	if err := removexattr(path, name, 0); err != nil {
 		return &XAttrError{"removexattr", path, name, err}

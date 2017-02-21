@@ -29,7 +29,7 @@ func Getxattr(path, name string) ([]byte, error) {
 	return []byte{}, nil
 }
 
-// Listxattr retrieves a list of names of extended attributes associated 
+// Listxattr retrieves a list of names of extended attributes associated
 // with the given path in the file system.
 func Listxattr(path string) ([]string, error) {
 	// find size.

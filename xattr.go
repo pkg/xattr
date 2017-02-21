@@ -12,7 +12,7 @@ func (e *XAttrError) Error() string {
 	return e.Op + " " + e.Path + " " + e.Name + ": " + e.Err.Error()
 }
 
-// Convert an array of NULL terminated UTF-8 strings to a []string.
+// nullTermToStrings converts an array of NULL terminated UTF-8 strings to a []string.
 func nullTermToStrings(buf []byte) (result []string) {
 	offset := 0
 	for index, b := range buf {
