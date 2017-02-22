@@ -1,3 +1,10 @@
+/*
+Package xattr provides support for extended attributes on linux, darwin and freebsd.
+Extended attributes are name:value pairs associated permanently with files and directories, 
+similar to the environment strings associated with a process. 
+An attribute may be defined or undefined. If it is defined, its value may be empty or non-empty.
+More details you can find here: https://en.wikipedia.org/wiki/Extended_file_attributes
+*/
 package xattr
 
 // XAttrError records an error and the operation, file path and attribute that caused it.
