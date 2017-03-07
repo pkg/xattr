@@ -2,7 +2,6 @@ language: go
 sudo: false
 
 go:
-  - 1.7.5
   - 1.8
   - tip
 
@@ -12,6 +11,8 @@ os:
 
 install:
   - go version
+  - go build
 
 script:
-  - go test
+  - go vet
+  - go test -v -race
