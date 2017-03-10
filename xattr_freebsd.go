@@ -10,8 +10,8 @@ const (
 	EXTATTR_NAMESPACE_USER = 1
 )
 
-// Getxattr retrieves extended attribute data associated with path.
-func Getxattr(path, name string) ([]byte, error) {
+// Get retrieves extended attribute data associated with path.
+func Get(path, name string) ([]byte, error) {
 	// find size.
 	size, err := extattr_get_file(path, EXTATTR_NAMESPACE_USER, name, nil, 0)
 	if err != nil {
@@ -29,9 +29,9 @@ func Getxattr(path, name string) ([]byte, error) {
 	return []byte{}, nil
 }
 
-// Listxattr retrieves a list of names of extended attributes associated
+// List retrieves a list of names of extended attributes associated
 // with the given path in the file system.
-func Listxattr(path string) ([]string, error) {
+func List(path string) ([]string, error) {
 	// find size.
 	size, err := extattr_list_file(path, EXTATTR_NAMESPACE_USER, nil, 0)
 	if err != nil {
@@ -49,8 +49,8 @@ func Listxattr(path string) ([]string, error) {
 	return []string{}, nil
 }
 
-// Setxattr associates name and data together as an attribute of path.
-func Setxattr(path, name string, data []byte) error {
+// Set associates name and data together as an attribute of path.
+func Set(path, name string, data []byte) error {
 	written, err := extattr_set_file(path, EXTATTR_NAMESPACE_USER, name, &data[0], len(data))
 	if err != nil {
 		return &Error{"extattr_set_file", path, name, err}
@@ -61,8 +61,8 @@ func Setxattr(path, name string, data []byte) error {
 	return nil
 }
 
-// Removexattr removes the attribute associated with the given path.
-func Removexattr(path, name string) error {
+// Remove removes the attribute associated with the given path.
+func Remove(path, name string) error {
 	if err := extattr_delete_file(path, EXTATTR_NAMESPACE_USER, name); err != nil {
 		return &Error{"extattr_delete_file", path, name, err}
 	}

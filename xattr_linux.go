@@ -4,8 +4,8 @@ package xattr
 
 import "syscall"
 
-// Getxattr retrieves extended attribute data associated with path.
-func Getxattr(path, name string) ([]byte, error) {
+// Get retrieves extended attribute data associated with path.
+func Get(path, name string) ([]byte, error) {
 	// find size.
 	size, err := syscall.Getxattr(path, name, nil)
 	if err != nil {
@@ -23,9 +23,9 @@ func Getxattr(path, name string) ([]byte, error) {
 	return []byte{}, nil
 }
 
-// Listxattr retrieves a list of names of extended attributes associated
+// List retrieves a list of names of extended attributes associated
 // with the given path in the file system.
-func Listxattr(path string) ([]string, error) {
+func List(path string) ([]string, error) {
 	// find size.
 	size, err := syscall.Listxattr(path, nil)
 	if err != nil {
@@ -43,17 +43,17 @@ func Listxattr(path string) ([]string, error) {
 	return []string{}, nil
 }
 
-// Setxattr associates name and data together as an attribute of path.
-func Setxattr(path, name string, data []byte) error {
+// Set associates name and data together as an attribute of path.
+func Set(path, name string, data []byte) error {
 	if err := syscall.Setxattr(path, name, data, 0); err != nil {
 		return &Error{"setxattr", path, name, err}
 	}
 	return nil
 }
 
-// Removexattr removes the attribute associated
+// Remove removes the attribute associated
 // with the given path.
-func Removexattr(path, name string) error {
+func Remove(path, name string) error {
 	if err := syscall.Removexattr(path, name); err != nil {
 		return &Error{"removexattr", path, name, err}
 	}
