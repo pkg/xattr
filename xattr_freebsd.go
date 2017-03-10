@@ -15,14 +15,14 @@ func Get(path, name string) ([]byte, error) {
 	// find size.
 	size, err := extattr_get_file(path, EXTATTR_NAMESPACE_USER, name, nil, 0)
 	if err != nil {
-		return nil, &Error{"extattr_get_file", path, name, err}
+		return nil, &Error{"xattr.Get", path, name, err}
 	}
 	if size > 0 {
 		buf := make([]byte, size)
 		// Read into buffer of that size.
 		read, err := extattr_get_file(path, EXTATTR_NAMESPACE_USER, name, &buf[0], size)
 		if err != nil {
-			return nil, &Error{"extattr_get_file", path, name, err}
+			return nil, &Error{"xattr.Get", path, name, err}
 		}
 		return buf[:read], nil
 	}
@@ -35,14 +35,14 @@ func List(path string) ([]string, error) {
 	// find size.
 	size, err := extattr_list_file(path, EXTATTR_NAMESPACE_USER, nil, 0)
 	if err != nil {
-		return nil, &Error{"extattr_list_file", path, "", err}
+		return nil, &Error{"xattr.List", path, "", err}
 	}
 	if size > 0 {
 		buf := make([]byte, size)
 		// Read into buffer of that size.
 		read, err := extattr_list_file(path, EXTATTR_NAMESPACE_USER, &buf[0], size)
 		if err != nil {
-			return nil, &Error{"extattr_list_file", path, "", err}
+			return nil, &Error{"xattr.List", path, "", err}
 		}
 		return attrListToStrings(buf[:read]), nil
 	}
@@ -53,10 +53,10 @@ func List(path string) ([]string, error) {
 func Set(path, name string, data []byte) error {
 	written, err := extattr_set_file(path, EXTATTR_NAMESPACE_USER, name, &data[0], len(data))
 	if err != nil {
-		return &Error{"extattr_set_file", path, name, err}
+		return &Error{"xattr.Set", path, name, err}
 	}
 	if written != len(data) {
-		return &Error{"extattr_set_file", path, name, syscall.E2BIG}
+		return &Error{"xattr.Set", path, name, syscall.E2BIG}
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ func Set(path, name string, data []byte) error {
 // Remove removes the attribute associated with the given path.
 func Remove(path, name string) error {
 	if err := extattr_delete_file(path, EXTATTR_NAMESPACE_USER, name); err != nil {
-		return &Error{"extattr_delete_file", path, name, err}
+		return &Error{"xattr.Remove", path, name, err}
 	}
 	return nil
 }
