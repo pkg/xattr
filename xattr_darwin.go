@@ -2,7 +2,7 @@
 
 package xattr
 
-// Retrieve extended attribute data associated with path.
+// Getxattr retrieves extended attribute data associated with path.
 func Getxattr(path, name string) ([]byte, error) {
 	// find size.
 	size, err := getxattr(path, name, nil, 0, 0, 0)
@@ -21,8 +21,8 @@ func Getxattr(path, name string) ([]byte, error) {
 	return []byte{}, nil
 }
 
-// Retrieves a list of names of extended attributes associated with the
-// given path in the file system.
+// Listxattr retrieves a list of names of extended attributes associated
+// with the given path in the file system.
 func Listxattr(path string) ([]string, error) {
 	// find size.
 	size, err := listxattr(path, nil, 0, 0)
@@ -42,7 +42,7 @@ func Listxattr(path string) ([]string, error) {
 	return []string{}, nil
 }
 
-// Associates name and data together as an attribute of path.
+// Setxattr associates name and data together as an attribute of path.
 func Setxattr(path, name string, data []byte) error {
 	if err := setxattr(path, name, &data[0], len(data), 0, 0); err != nil {
 		return &XAttrError{"setxattr", path, name, err}
@@ -50,7 +50,7 @@ func Setxattr(path, name string, data []byte) error {
 	return nil
 }
 
-// Remove the attribute.
+// Removexattr removes the attribute associated with the given path.
 func Removexattr(path, name string) error {
 	if err := removexattr(path, name, 0); err != nil {
 		return &XAttrError{"removexattr", path, name, err}

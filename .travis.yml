@@ -2,7 +2,6 @@ language: go
 sudo: false
 
 go:
-  - 1.7.5
   - 1.8
   - tip
 
@@ -15,7 +14,9 @@ install:
   - export GOBIN="$GOPATH/bin"
   - export PATH="$PATH:$GOBIN"
   - go get golang.org/x/tools/cmd/goimports
+  - go build
 
 script:
-  - go test
+  - go vet
+  - go test -v -race
   - diff <(GOPATH="$PWD:$PWD/vendor" goimports -d .) <(printf "")
