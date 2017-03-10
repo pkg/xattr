@@ -7,15 +7,15 @@ More details you can find here: https://en.wikipedia.org/wiki/Extended_file_attr
 */
 package xattr
 
-// XAttrError records an error and the operation, file path and attribute that caused it.
-type XAttrError struct {
+// Error records an error and the operation, file path and attribute that caused it.
+type Error struct {
 	Op   string
 	Path string
 	Name string
 	Err  error
 }
 
-func (e *XAttrError) Error() string {
+func (e *Error) Error() string {
 	return e.Op + " " + e.Path + " " + e.Name + ": " + e.Err.Error()
 }
 
