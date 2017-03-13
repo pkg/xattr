@@ -19,16 +19,16 @@ Extended attribute support for Go (linux + darwin + freebsd).
   }
  
   var list []string
-  list, err = xattr.List(path); err != nil {
+  if list, err = xattr.List(path); err != nil {
 		log.Fatal(err)
-	}
+  }
   
   var data []byte
-  data, err = xattr.Get(path, prefix+"test"); err != nil {
+  if data, err = xattr.Get(path, prefix+"test"); err != nil {
     log.Fatal(err)
   }
 
   if err = xattr.Remove(path, prefix+"test"); err != nil {
 		log.Fatal(err)
-	}
+  }
 ```
