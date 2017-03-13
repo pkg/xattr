@@ -17,9 +17,18 @@ Extended attribute support for Go (linux + darwin + freebsd).
   if err := xattr.Set(path, prefix+"test", []byte("test-attr-value")); err != nil {
     log.Fatal(err)
   }
-
+ 
+  var list []string
+  list, err = xattr.List(path); err != nil {
+		log.Fatal(err)
+	}
+  
   var data []byte
   data, err = xattr.Get(path, prefix+"test"); err != nil {
     log.Fatal(err)
   }
+
+  if err = xattr.Remove(path, prefix+"test"); err != nil {
+		log.Fatal(err)
+	}
 ```
