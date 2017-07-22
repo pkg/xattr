@@ -17,7 +17,7 @@ func TestRootless(t *testing.T) {
 
 	err = Set(tmp.Name(), "com.apple.rootless", []byte{})
 	if err != nil {
-		// expected: peration not permitted
+		// expected: operation not permitted
 		t.Log(err)
 	}
 
