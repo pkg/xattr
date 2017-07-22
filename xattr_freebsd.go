@@ -51,11 +51,16 @@ func List(path string) ([]string, error) {
 
 // Set associates name and data together as an attribute of path.
 func Set(path, name string, data []byte) error {
-	written, err := extattr_set_file(path, EXTATTR_NAMESPACE_USER, name, &data[0], len(data))
+	var dataval *byte = nil
+	datalen := len(data)
+	if datalen > 0 {
+		dataval = &data[0]
+	}
+	written, err := extattr_set_file(path, EXTATTR_NAMESPACE_USER, name, dataval, datalen)
 	if err != nil {
 		return &Error{"xattr.Set", path, name, err}
 	}
-	if written != len(data) {
+	if written != datalen {
 		return &Error{"xattr.Set", path, name, syscall.E2BIG}
 	}
 	return nil
