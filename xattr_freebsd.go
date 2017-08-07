@@ -74,6 +74,14 @@ func Remove(path, name string) error {
 	return nil
 }
 
+// Supported checks if filesystem supports extended attributes
+func Supported(path string) bool {
+	if _, err := extattr_list_file(path, EXTATTR_NAMESPACE_USER, nil, 0); err != nil {
+		return err != syscall.ENOTSUP
+	}
+	return true
+}
+
 // attrListToStrings converts a sequnce of attribute name entries to a []string.
 // Each entry consists of a single byte containing the length
 // of the attribute name, followed by the attribute name.
