@@ -32,7 +32,7 @@ func List(path string) ([]string, error) {
 		return nil, &Error{"xattr.List", path, "", err}
 	}
 	if size > 0 {
-		buf := make([]byte, size)
+		buf := make([]byte, size+1)
 		// Read into buffer of that size.
 		read, err := syscall.Listxattr(path, buf)
 		if err != nil {
