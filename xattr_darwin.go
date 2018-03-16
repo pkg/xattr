@@ -32,7 +32,6 @@ func List(path string) ([]string, error) {
 		return nil, &Error{"xattr.List", path, "", err}
 	}
 	if size > 0 {
-
 		buf := make([]byte, size)
 		// Read into buffer of that size.
 		read, err := listxattr(path, &buf[0], size, 0)
@@ -46,7 +45,7 @@ func List(path string) ([]string, error) {
 
 // Set associates name and data together as an attribute of path.
 func Set(path, name string, data []byte) error {
-	var dataval *byte = nil
+	var dataval *byte
 	datalen := len(data)
 	if datalen > 0 {
 		dataval = &data[0]

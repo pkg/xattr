@@ -32,6 +32,8 @@ func List(path string) ([]string, error) {
 		return nil, &Error{"xattr.List", path, "", err}
 	}
 	if size > 0 {
+		// `size + 1` because of ERANGE error when reading
+		// from a SMB1 mount point (https://github.com/pkg/xattr/issues/16).
 		buf := make([]byte, size+1)
 		// Read into buffer of that size.
 		read, err := syscall.Listxattr(path, buf)
