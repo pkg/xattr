@@ -51,7 +51,7 @@ func List(path string) ([]string, error) {
 
 // Set associates name and data together as an attribute of path.
 func Set(path, name string, data []byte) error {
-	var dataval *byte = nil
+	var dataval *byte
 	datalen := len(data)
 	if datalen > 0 {
 		dataval = &data[0]
