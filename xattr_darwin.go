@@ -2,8 +2,6 @@
 
 package xattr
 
-import "syscall"
-
 // Get retrieves extended attribute data associated with path.
 func Get(path, name string) ([]byte, error) {
 	// find size.
@@ -62,12 +60,4 @@ func Remove(path, name string) error {
 		return &Error{"xattr.Remove", path, name, err}
 	}
 	return nil
-}
-
-// Supported checks if filesystem supports extended attributes
-func Supported(path string) bool {
-	if _, err := listxattr(path, nil, 0, 0); err != nil {
-		return err != syscall.ENOTSUP
-	}
-	return true
 }

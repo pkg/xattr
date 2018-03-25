@@ -61,11 +61,3 @@ func Remove(path, name string) error {
 	}
 	return nil
 }
-
-// Supported checks if filesystem supports extended attributes
-func Supported(path string) bool {
-	if _, err := syscall.Listxattr(path, nil); err != nil {
-		return err != syscall.ENOTSUP
-	}
-	return true
-}

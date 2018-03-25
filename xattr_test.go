@@ -5,6 +5,7 @@ package xattr
 import (
 	"io/ioutil"
 	"os"
+	"syscall"
 	"testing"
 )
 
@@ -17,20 +18,11 @@ func Test(t *testing.T) {
 	}
 	defer os.Remove(tmp.Name())
 
-	// Check if filesystem supports extended attributes
-	if !Supported(tmp.Name()) {
-		t.Skip("Skipping test - filesystem does not support extended attributes")
-	}
-
 	err = Set(tmp.Name(), UserPrefix+"test", []byte("test-attr-value"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	checkIfError(t, err)
 
 	list, err := List(tmp.Name())
-	if err != nil {
-		t.Fatal(err)
-	}
+	checkIfError(t, err)
 
 	found := false
 	for _, name := range list {
@@ -67,20 +59,11 @@ func TestNoData(t *testing.T) {
 	}
 	defer os.Remove(tmp.Name())
 
-	// Check if filesystem supports extended attributes
-	if !Supported(tmp.Name()) {
-		t.Skip("Skipping test - filesystem does not support extended attributes")
-	}
-
 	err = Set(tmp.Name(), UserPrefix+"test", []byte{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	checkIfError(t, err)
 
 	list, err := List(tmp.Name())
-	if err != nil {
-		t.Fatal(err)
-	}
+	checkIfError(t, err)
 
 	found := false
 	for _, name := range list {
@@ -91,5 +74,18 @@ func TestNoData(t *testing.T) {
 
 	if !found {
 		t.Fatal("Listxattr did not return test attribute")
+	}
+}
+
+func checkIfError(t *testing.T, err error) {
+	if err == nil {
+		return
+	}
+
+	// check if filesystem supports extended attributes
+	if err == syscall.ENOTSUP {
+		t.Skip("Skipping test - filesystem does not support extended attributes")
+	} else {
+		t.Fatal(err)
 	}
 }
