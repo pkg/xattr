@@ -7,26 +7,72 @@ More details you can find here: https://en.wikipedia.org/wiki/Extended_file_attr
 */
 package xattr
 
-// Error records an error and the operation, file path and attribute that caused it.
-type Error struct {
-	Op   string
-	Path string
-	Name string
-	Err  error
-}
+import (
+	"syscall"
+)
 
-func (e *Error) Error() string {
-	return e.Op + " " + e.Path + " " + e.Name + ": " + e.Err.Error()
-}
-
-// nullTermToStrings converts an array of NULL terminated UTF-8 strings to a []string.
-func nullTermToStrings(buf []byte) (result []string) {
-	offset := 0
-	for index, b := range buf {
-		if b == 0 {
-			result = append(result, string(buf[offset:index]))
-			offset = index + 1
-		}
+// Get retrieves extended attribute data associated with path.
+func Get(path, name string) ([]byte, error) {
+	// find size.
+	size, err := getxattr(path, name, nil)
+	if err != nil {
+		return nil, &Error{"xattr.Get", path, name, err}
 	}
-	return
+	if size > 0 {
+		data := make([]byte, size)
+		// Read into buffer of that size.
+		read, err := getxattr(path, name, data)
+		if err != nil {
+			return nil, &Error{"xattr.Get", path, name, err}
+		}
+		return data[:read], nil
+	}
+	return []byte{}, nil
+}
+
+// Set associates name and data together as an attribute of path.
+func Set(path, name string, data []byte) error {
+	if err := setxattr(path, name, data, 0); err != nil {
+		return &Error{"xattr.Set", path, name, err}
+	}
+	return nil
+}
+
+// Remove removes the attribute associated
+// with the given path.
+func Remove(path, name string) error {
+	if err := removexattr(path, name); err != nil {
+		return &Error{"xattr.Remove", path, name, err}
+	}
+	return nil
+}
+
+// List retrieves a list of names of extended attributes associated
+// with the given path in the file system.
+func List(path string) ([]string, error) {
+	// find size.
+	size, err := listxattr(path, nil)
+	if err != nil {
+		return nil, &Error{"xattr.List", path, "", err}
+	}
+	if size > 0 {
+		// `size + 1` because of ERANGE error when reading
+		// from a SMB1 mount point (https://github.com/pkg/xattr/issues/16).
+		buf := make([]byte, size+1)
+		// Read into buffer of that size.
+		read, err := listxattr(path, buf)
+		if err != nil {
+			return nil, &Error{"xattr.List", path, "", err}
+		}
+		return parseXattrList(buf[:read]), nil
+	}
+	return []string{}, nil
+}
+
+// Supported checks if filesystem supports extended attributes
+func Supported(path string) bool {
+	if _, err := getxattr(path, "user.xxx-is-xattr-supported-xxx", nil); err != nil {
+		return err != syscall.ENOTSUP
+	}
+	return true
 }

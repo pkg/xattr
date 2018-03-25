@@ -7,6 +7,52 @@ import (
 	"unsafe"
 )
 
+const (
+	EXTATTR_NAMESPACE_USER = 1
+)
+
+func getxattr(path string, attr string, dest []byte) (sz int, err error) {
+	nbytes := len(dest)
+	var dataPtr *byte
+	if nbytes > 0 {
+		dataPtr = &dest[0]
+	}
+	return extattr_get_file(path, EXTATTR_NAMESPACE_USER, attr, dataPtr, nbytes)
+}
+
+func setxattr(path string, attr string, data []byte, flags int) (err error) {
+	nbytes := len(data)
+	var dataPtr *byte
+	if nbytes > 0 {
+		dataPtr = &data[0]
+	}
+	written, err := extattr_set_file(path, EXTATTR_NAMESPACE_USER, attr, dataPtr, nbytes)
+	if err != nil {
+		return err
+	}
+	if written != nbytes {
+		return syscall.E2BIG
+	}
+	return nil
+}
+
+func removexattr(path string, attr string) (err error) {
+	return extattr_delete_file(path, EXTATTR_NAMESPACE_USER, attr)
+}
+
+func listxattr(path string, dest []byte) (sz int, err error) {
+	nbytes := len(dest)
+	var dataPtr *byte
+	if nbytes > 0 {
+		dataPtr = &dest[0]
+	}
+	return extattr_list_file(path, EXTATTR_NAMESPACE_USER, dataPtr, nbytes)
+}
+
+func parseXattrList(buf []byte) []string {
+	return attrListToStrings(buf)
+}
+
 /*
    ssize_t
    extattr_get_file(const char *path, int attrnamespace,
@@ -88,4 +134,19 @@ func extattr_list_file(path string, attrnamespace int, data *byte, nbytes int) (
 		err = e
 	}
 	return int(r), err
+}
+
+// attrListToStrings converts a sequnce of attribute name entries to a []string.
+// Each entry consists of a single byte containing the length
+// of the attribute name, followed by the attribute name.
+// The name is _not_ terminated by NUL.
+func attrListToStrings(buf []byte) []string {
+	var result []string
+	index := 0
+	for index < len(buf) {
+		next := index + 1 + int(buf[index])
+		result = append(result, string(buf[index+1:next]))
+		index = next
+	}
+	return result
 }
