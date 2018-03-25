@@ -71,7 +71,7 @@ func List(path string) ([]string, error) {
 
 // Supported checks if filesystem supports extended attributes
 func Supported(path string) bool {
-	if _, err := listxattr(path, nil); err != nil {
+	if _, err := getxattr(path, "user.xxx-is-xattr-supported-xxx", nil); err != nil {
 		return err != syscall.ENOTSUP
 	}
 	return true
