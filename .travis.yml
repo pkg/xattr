@@ -18,6 +18,5 @@ install:
   - go build
 
 script:
-  - go vet
-  - go test -v -race
+  - ./test.sh
   - diff <(GOPATH="$PWD:$PWD/vendor" goimports -d .) <(printf "")
