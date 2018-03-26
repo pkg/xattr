@@ -79,8 +79,13 @@ func checkIfError(t *testing.T, err error) {
 		return
 	}
 
+	errno := err.(*Error)
+	if errno == nil {
+		t.Fatal(err)
+	}
+
 	// check if filesystem supports extended attributes
-	if err == syscall.ENOTSUP || err == syscall.EOPNOTSUPP {
+	if errno.Err == syscall.Errno(syscall.ENOTSUP) || errno.Err == syscall.Errno(syscall.EOPNOTSUPP) {
 		t.Skip("Skipping test - filesystem does not support extended attributes")
 	} else {
 		t.Fatal(err)
