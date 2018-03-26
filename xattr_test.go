@@ -37,9 +37,8 @@ func Test(t *testing.T) {
 
 	var data []byte
 	data, err = Get(tmp.Name(), UserPrefix+"test")
-	if err != nil {
-		t.Fatal(err)
-	}
+	checkIfError(t, err)
+
 	value := string(data)
 	t.Log(value)
 	if "test-attr-value" != value {
@@ -47,9 +46,7 @@ func Test(t *testing.T) {
 	}
 
 	err = Remove(tmp.Name(), UserPrefix+"test")
-	if err != nil {
-		t.Fatal(err)
-	}
+	checkIfError(t, err)
 }
 
 func TestNoData(t *testing.T) {
@@ -83,7 +80,7 @@ func checkIfError(t *testing.T, err error) {
 	}
 
 	// check if filesystem supports extended attributes
-	if err == syscall.ENOTSUP {
+	if err == syscall.ENOTSUP || err == syscall.EOPNOTSUPP {
 		t.Skip("Skipping test - filesystem does not support extended attributes")
 	} else {
 		t.Fatal(err)
