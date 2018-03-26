@@ -2,72 +2,76 @@
 
 package xattr
 
-import "syscall"
+import (
+	"syscall"
+	"unsafe"
+)
 
-// Get retrieves extended attribute data associated with path.
-func Get(path, name string) ([]byte, error) {
-	// find size.
-	size, err := getxattr(path, name, nil, 0, 0, 0)
-	if err != nil {
-		return nil, &Error{"xattr.Get", path, name, err}
+func getxattr(path string, attr string, dest []byte) (sz int, err error) {
+	value, size := sliceToPtr(dest)
+	/*
+		ssize_t getxattr(const char *path, const char *name,
+			void *value, size_t size, u_int32_t position, int options)
+	*/
+	r0, _, e1 := syscall.Syscall6(syscall.SYS_GETXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		uintptr(unsafe.Pointer(syscall.StringBytePtr(attr))), uintptr(unsafe.Pointer(value)), uintptr(size), 0, 0)
+	if e1 != 0 {
+		return int(r0), e1
 	}
-	if size > 0 {
-		buf := make([]byte, size)
-		// Read into buffer of that size.
-		read, err := getxattr(path, name, &buf[0], size, 0, 0)
-		if err != nil {
-			return nil, &Error{"xattr.Get", path, name, err}
+	return int(r0), nil
+}
+
+func setxattr(path string, attr string, data []byte, flags int) (err error) {
+	value, size := sliceToPtr(data)
+	/*
+		int setxattr(const char *path,
+			const char *name, void *value, size_t size, u_int32_t position, int options);
+	*/
+	_, _, e1 := syscall.Syscall6(syscall.SYS_SETXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		uintptr(unsafe.Pointer(syscall.StringBytePtr(attr))), uintptr(unsafe.Pointer(value)), uintptr(size), 0, 0)
+	if e1 != 0 {
+		return e1
+	}
+	return
+}
+
+func removexattr(path string, attr string) (err error) {
+	/*
+		int removexattr(const char *path,
+			const char *name, int options);
+	*/
+	_, _, e1 := syscall.Syscall(syscall.SYS_REMOVEXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		uintptr(unsafe.Pointer(syscall.StringBytePtr(attr))), 0)
+	if e1 != 0 {
+		return e1
+	}
+	return
+}
+
+func listxattr(path string, dest []byte) (sz int, err error) {
+	namebuf, size := sliceToPtr(dest)
+	/*
+		ssize_t listxattr(const char *path, char *namebuf,
+			size_t size, int options);
+	*/
+	r0, _, e1 := syscall.Syscall6(syscall.SYS_LISTXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		uintptr(unsafe.Pointer(namebuf)), uintptr(size), 0, 0, 0)
+	if e1 != 0 {
+		return int(r0), e1
+	}
+	return int(r0), nil
+}
+
+// attrListToStrings converts a sequence of attribute name entries to a
+// []string.
+// On Darwin and Linux, each entry is a NUL-terminated string.
+func attrListToStrings(buf []byte) (result []string) {
+	offset := 0
+	for index, b := range buf {
+		if b == 0 {
+			result = append(result, string(buf[offset:index]))
+			offset = index + 1
 		}
-		return buf[:read], nil
 	}
-	return []byte{}, nil
-}
-
-// List retrieves a list of names of extended attributes associated
-// with the given path in the file system.
-func List(path string) ([]string, error) {
-	// find size.
-	size, err := listxattr(path, nil, 0, 0)
-	if err != nil {
-		return nil, &Error{"xattr.List", path, "", err}
-	}
-	if size > 0 {
-		buf := make([]byte, size)
-		// Read into buffer of that size.
-		read, err := listxattr(path, &buf[0], size, 0)
-		if err != nil {
-			return nil, &Error{"xattr.List", path, "", err}
-		}
-		return nullTermToStrings(buf[:read]), nil
-	}
-	return []string{}, nil
-}
-
-// Set associates name and data together as an attribute of path.
-func Set(path, name string, data []byte) error {
-	var dataval *byte
-	datalen := len(data)
-	if datalen > 0 {
-		dataval = &data[0]
-	}
-	if err := setxattr(path, name, dataval, datalen, 0, 0); err != nil {
-		return &Error{"xattr.Set", path, name, err}
-	}
-	return nil
-}
-
-// Remove removes the attribute associated with the given path.
-func Remove(path, name string) error {
-	if err := removexattr(path, name, 0); err != nil {
-		return &Error{"xattr.Remove", path, name, err}
-	}
-	return nil
-}
-
-// Supported checks if filesystem supports extended attributes
-func Supported(path string) bool {
-	if _, err := listxattr(path, nil, 0, 0); err != nil {
-		return err != syscall.ENOTSUP
-	}
-	return true
+	return
 }
