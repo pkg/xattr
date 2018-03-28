@@ -6,26 +6,25 @@ import (
 	"syscall"
 )
 
-func getxattr(path string, attr string, dest []byte) (sz int, err error) {
-	return syscall.Getxattr(path, attr, dest)
+func getxattr(path string, name string, data []byte) (int, error) {
+	return syscall.Getxattr(path, name, data)
 }
 
-func setxattr(path string, attr string, data []byte, flags int) (err error) {
-	return syscall.Setxattr(path, attr, data, flags)
+func setxattr(path string, name string, data []byte, flags int) error {
+	return syscall.Setxattr(path, name, data, flags)
 }
 
-func removexattr(path string, attr string) (err error) {
-	return syscall.Removexattr(path, attr)
+func removexattr(path string, name string) error {
+	return syscall.Removexattr(path, name)
 }
 
-func listxattr(path string, dest []byte) (sz int, err error) {
-	return syscall.Listxattr(path, dest)
+func listxattr(path string, data []byte) (int, error) {
+	return syscall.Listxattr(path, data)
 }
 
-// attrListToStrings converts a sequence of attribute name entries to a
-// []string.
-// On Darwin and Linux, each entry is a NUL-terminated string.
-func attrListToStrings(buf []byte) (result []string) {
+// stringsFromByteSlice converts a sequence of attributes to a []string.
+// On Darwin and Linux, each entry is a NULL-terminated string.
+func stringsFromByteSlice(buf []byte) (result []string) {
 	offset := 0
 	for index, b := range buf {
 		if b == 0 {

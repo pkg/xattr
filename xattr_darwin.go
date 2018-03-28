@@ -7,65 +7,83 @@ import (
 	"unsafe"
 )
 
-func getxattr(path string, attr string, dest []byte) (sz int, err error) {
-	value, size := sliceToPtr(dest)
+func getxattr(path string, name string, data []byte) (int, error) {
+	value, size := bytePtrFromSlice(data)
 	/*
-		ssize_t getxattr(const char *path, const char *name,
-			void *value, size_t size, u_int32_t position, int options)
+		ssize_t getxattr(
+			const char *path,
+			const char *name,
+			void *value,
+			size_t size,
+			u_int32_t position,
+			int options
+		)
 	*/
-	r0, _, e1 := syscall.Syscall6(syscall.SYS_GETXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
-		uintptr(unsafe.Pointer(syscall.StringBytePtr(attr))), uintptr(unsafe.Pointer(value)), uintptr(size), 0, 0)
-	if e1 != syscall.Errno(0) {
-		return int(r0), e1
+	r0, _, err := syscall.Syscall6(syscall.SYS_GETXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		uintptr(unsafe.Pointer(syscall.StringBytePtr(name))), uintptr(unsafe.Pointer(value)), uintptr(size), 0, 0)
+	if err != syscall.Errno(0) {
+		return int(r0), err
 	}
 	return int(r0), nil
 }
 
-func setxattr(path string, attr string, data []byte, flags int) (err error) {
-	value, size := sliceToPtr(data)
+func setxattr(path string, name string, data []byte, flags int) error {
+	value, size := bytePtrFromSlice(data)
 	/*
-		int setxattr(const char *path,
-			const char *name, void *value, size_t size, u_int32_t position, int options);
+		int setxattr(
+			const char *path,
+			const char *name,
+			void *value,
+			size_t size,
+			u_int32_t position,
+			int options
+		);
 	*/
-	_, _, e1 := syscall.Syscall6(syscall.SYS_SETXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
-		uintptr(unsafe.Pointer(syscall.StringBytePtr(attr))), uintptr(unsafe.Pointer(value)), uintptr(size), 0, 0)
-	if e1 != syscall.Errno(0) {
-		return e1
+	_, _, err := syscall.Syscall6(syscall.SYS_SETXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		uintptr(unsafe.Pointer(syscall.StringBytePtr(name))), uintptr(unsafe.Pointer(value)), uintptr(size), 0, 0)
+	if err != syscall.Errno(0) {
+		return err
 	}
-	return
+	return nil
 }
 
-func removexattr(path string, attr string) (err error) {
+func removexattr(path string, name string) error {
 	/*
-		int removexattr(const char *path,
-			const char *name, int options);
+		int removexattr(
+			const char *path,
+			const char *name,
+			int options
+		);
 	*/
-	_, _, e1 := syscall.Syscall(syscall.SYS_REMOVEXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
-		uintptr(unsafe.Pointer(syscall.StringBytePtr(attr))), 0)
-	if e1 != syscall.Errno(0) {
-		return e1
+	_, _, err := syscall.Syscall(syscall.SYS_REMOVEXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		uintptr(unsafe.Pointer(syscall.StringBytePtr(name))), 0)
+	if err != syscall.Errno(0) {
+		return err
 	}
-	return
+	return nil
 }
 
-func listxattr(path string, dest []byte) (sz int, err error) {
-	namebuf, size := sliceToPtr(dest)
+func listxattr(path string, data []byte) (int, error) {
+	name, size := bytePtrFromSlice(data)
 	/*
-		ssize_t listxattr(const char *path, char *namebuf,
-			size_t size, int options);
+		ssize_t listxattr(
+			const char *path,
+			char *name,
+			size_t size,
+			int options
+		);
 	*/
-	r0, _, e1 := syscall.Syscall6(syscall.SYS_LISTXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
-		uintptr(unsafe.Pointer(namebuf)), uintptr(size), 0, 0, 0)
-	if e1 != syscall.Errno(0) {
-		return int(r0), e1
+	r0, _, err := syscall.Syscall6(syscall.SYS_LISTXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		uintptr(unsafe.Pointer(name)), uintptr(size), 0, 0, 0)
+	if err != syscall.Errno(0) {
+		return int(r0), err
 	}
 	return int(r0), nil
 }
 
-// attrListToStrings converts a sequence of attribute name entries to a
-// []string.
+// stringsFromByteSlice converts a sequence of attributes to a []string.
 // On Darwin and Linux, each entry is a NULL-terminated string.
-func attrListToStrings(buf []byte) (result []string) {
+func stringsFromByteSlice(buf []byte) (result []string) {
 	offset := 0
 	for index, b := range buf {
 		if b == 0 {

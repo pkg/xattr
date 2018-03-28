@@ -46,8 +46,7 @@ func Set(path, name string, data []byte) error {
 	return nil
 }
 
-// Remove removes the attribute associated
-// with the given path.
+// Remove removes the attribute associated with the given path.
 func Remove(path, name string) error {
 	if err := removexattr(path, name); err != nil {
 		return &Error{"xattr.Remove", path, name, err}
@@ -72,15 +71,16 @@ func List(path string) ([]string, error) {
 		if err != nil {
 			return nil, &Error{"xattr.List", path, "", err}
 		}
-		return attrListToStrings(buf[:read]), nil
+		return stringsFromByteSlice(buf[:read]), nil
 	}
 	return []string{}, nil
 }
 
-func sliceToPtr(data []byte) (ptr *byte, size int) {
+// bytePtrFromSlice returns a pointer to array of bytes and a size.
+func bytePtrFromSlice(data []byte) (ptr *byte, size int) {
 	size = len(data)
 	if size > 0 {
 		ptr = &data[0]
 	}
-	return ptr, size
+	return
 }
