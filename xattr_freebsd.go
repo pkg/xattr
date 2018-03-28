@@ -4,80 +4,81 @@ package xattr
 
 import (
 	"syscall"
+	"unsafe"
 )
 
 const (
 	EXTATTR_NAMESPACE_USER = 1
 )
 
-// Get retrieves extended attribute data associated with path.
-func Get(path, name string) ([]byte, error) {
-	// find size.
-	size, err := extattr_get_file(path, EXTATTR_NAMESPACE_USER, name, nil, 0)
-	if err != nil {
-		return nil, &Error{"xattr.Get", path, name, err}
+func getxattr(path string, attr string, dest []byte) (sz int, err error) {
+	data, nbytes := sliceToPtr(dest)
+	/*
+		ssize_t extattr_get_file(const char *path,
+			int attrnamespace, const char *attrname,
+			void *data, size_t nbytes);
+	*/
+	r0, _, e1 := syscall.Syscall6(syscall.SYS_EXTATTR_GET_FILE, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		EXTATTR_NAMESPACE_USER, uintptr(unsafe.Pointer(syscall.StringBytePtr(attr))),
+		uintptr(unsafe.Pointer(data)), uintptr(nbytes), 0)
+	if e1 != syscall.Errno(0) {
+		return int(r0), err
 	}
-	if size > 0 {
-		buf := make([]byte, size)
-		// Read into buffer of that size.
-		read, err := extattr_get_file(path, EXTATTR_NAMESPACE_USER, name, &buf[0], size)
-		if err != nil {
-			return nil, &Error{"xattr.Get", path, name, err}
-		}
-		return buf[:read], nil
-	}
-	return []byte{}, nil
+	return int(r0), nil
 }
 
-// List retrieves a list of names of extended attributes associated
-// with the given path in the file system.
-func List(path string) ([]string, error) {
-	// find size.
-	size, err := extattr_list_file(path, EXTATTR_NAMESPACE_USER, nil, 0)
-	if err != nil {
-		return nil, &Error{"xattr.List", path, "", err}
+func setxattr(path string, attr string, data []byte, flags int) (err error) {
+	data2, nbytes := sliceToPtr(data)
+	/*
+		ssize_t extattr_set_file(const char *path,
+			int attrnamespace, const char *attrname,
+			const void *data, size_t nbytes);
+	*/
+	r0, _, e1 := syscall.Syscall6(syscall.SYS_EXTATTR_SET_FILE, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		EXTATTR_NAMESPACE_USER, uintptr(unsafe.Pointer(syscall.StringBytePtr(attr))),
+		uintptr(unsafe.Pointer(data2)), uintptr(nbytes), 0)
+	if e1 != syscall.Errno(0) {
+		return e1
 	}
-	if size > 0 {
-		buf := make([]byte, size)
-		// Read into buffer of that size.
-		read, err := extattr_list_file(path, EXTATTR_NAMESPACE_USER, &buf[0], size)
-		if err != nil {
-			return nil, &Error{"xattr.List", path, "", err}
-		}
-		return attrListToStrings(buf[:read]), nil
+	if int(r0) != nbytes {
+		return syscall.E2BIG
 	}
-	return []string{}, nil
+	return
 }
 
-// Set associates name and data together as an attribute of path.
-func Set(path, name string, data []byte) error {
-	var dataval *byte
-	datalen := len(data)
-	if datalen > 0 {
-		dataval = &data[0]
+func removexattr(path string, attr string) (err error) {
+	/*
+		int extattr_delete_file(const char *path,
+			int attrnamespace, const char *attrname);
+	*/
+	_, _, e1 := syscall.Syscall(syscall.SYS_EXTATTR_DELETE_FILE, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		EXTATTR_NAMESPACE_USER, uintptr(unsafe.Pointer(syscall.StringBytePtr(attr))),
+	)
+	if e1 != syscall.Errno(0) {
+		return e1
 	}
-	written, err := extattr_set_file(path, EXTATTR_NAMESPACE_USER, name, dataval, datalen)
-	if err != nil {
-		return &Error{"xattr.Set", path, name, err}
-	}
-	if written != datalen {
-		return &Error{"xattr.Set", path, name, syscall.E2BIG}
-	}
-	return nil
+	return
 }
 
-// Remove removes the attribute associated with the given path.
-func Remove(path, name string) error {
-	if err := extattr_delete_file(path, EXTATTR_NAMESPACE_USER, name); err != nil {
-		return &Error{"xattr.Remove", path, name, err}
+func listxattr(path string, dest []byte) (sz int, err error) {
+	data, nbytes := sliceToPtr(dest)
+	/*
+	   ssize_t extattr_list_file(const char *path, int attrnamespace, void *data,
+	   size_t nbytes);
+	*/
+	r0, _, e1 := syscall.Syscall6(syscall.SYS_EXTATTR_LIST_FILE, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
+		EXTATTR_NAMESPACE_USER, uintptr(unsafe.Pointer(data)), uintptr(nbytes), 0, 0)
+	if e1 != syscall.Errno(0) {
+		return int(r0), e1
 	}
-	return nil
+	return int(r0), nil
 }
 
-// attrListToStrings converts a sequnce of attribute name entries to a []string.
-// Each entry consists of a single byte containing the length
+// attrListToStrings converts a sequence of attribute name entries to a
+// []string.
+// On FreeBSD, each entry consists of a single byte containing the length
 // of the attribute name, followed by the attribute name.
-// The name is _not_ terminated by NUL.
+// The name is _not_ terminated by NULL.
 func attrListToStrings(buf []byte) []string {
 	var result []string
 	index := 0
