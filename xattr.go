@@ -39,8 +39,8 @@ func Get(path, name string) ([]byte, error) {
 }
 
 // Set associates name and data together as an attribute of path.
-func Set(path, name string, data []byte) error {
-	if err := setxattr(path, name, data, 0); err != nil {
+func Set(path, name string, data []byte, flags int) error {
+	if err := setxattr(path, name, data, flags); err != nil {
 		return &Error{"xattr.Set", path, name, err}
 	}
 	return nil
