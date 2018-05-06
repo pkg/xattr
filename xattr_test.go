@@ -18,7 +18,7 @@ func Test(t *testing.T) {
 	}
 	defer os.Remove(tmp.Name())
 
-	err = Set(tmp.Name(), UserPrefix+"test", []byte("test-attr-value"), 0)
+	err = Set(tmp.Name(), UserPrefix+"test", []byte("test-attr-value"))
 	checkIfError(t, err)
 
 	list, err := List(tmp.Name())
@@ -56,7 +56,7 @@ func TestNoData(t *testing.T) {
 	}
 	defer os.Remove(tmp.Name())
 
-	err = Set(tmp.Name(), UserPrefix+"test", []byte{}, 0)
+	err = Set(tmp.Name(), UserPrefix+"test", []byte{})
 	checkIfError(t, err)
 
 	list, err := List(tmp.Name())

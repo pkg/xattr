@@ -6,6 +6,11 @@ import (
 	"syscall"
 )
 
+const (
+	XATTR_CREATE  = 0x0001
+	XATTR_REPLACE = 0x0002
+)
+
 func getxattr(path string, name string, data []byte) (int, error) {
 	return syscall.Getxattr(path, name, data)
 }
