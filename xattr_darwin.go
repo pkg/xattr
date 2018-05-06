@@ -7,6 +7,16 @@ import (
 	"unsafe"
 )
 
+// See https://opensource.apple.com/source/xnu/xnu-1504.15.3/bsd/sys/xattr.h.auto.html
+const (
+	XATTR_NOFOLLOW        = 0x0001
+	XATTR_CREATE          = 0x0002
+	XATTR_REPLACE         = 0x0004
+	XATTR_NOSECURITY      = 0x0008
+	XATTR_NODEFAULT       = 0x0010
+	XATTR_SHOWCOMPRESSION = 0x0020
+)
+
 func getxattr(path string, name string, data []byte) (int, error) {
 	value, size := bytePtrFromSlice(data)
 	/*
@@ -40,7 +50,7 @@ func setxattr(path string, name string, data []byte, flags int) error {
 		);
 	*/
 	_, _, err := syscall.Syscall6(syscall.SYS_SETXATTR, uintptr(unsafe.Pointer(syscall.StringBytePtr(path))),
-		uintptr(unsafe.Pointer(syscall.StringBytePtr(name))), uintptr(unsafe.Pointer(value)), uintptr(size), 0, 0)
+		uintptr(unsafe.Pointer(syscall.StringBytePtr(name))), uintptr(unsafe.Pointer(value)), uintptr(size), 0, uintptr(flags))
 	if err != syscall.Errno(0) {
 		return err
 	}
