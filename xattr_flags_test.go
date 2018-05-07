@@ -15,9 +15,24 @@ func TestFlags(t *testing.T) {
 	}
 	defer os.Remove(tmp.Name())
 
-	err = SetWithFlags(tmp.Name(), UserPrefix+"flags-test", []byte("flags-test-attr-value"), XATTR_CREATE)
+	err = SetWithFlags(tmp.Name(), UserPrefix+"flags-test", []byte("flags-test-attr-value"), 0)
 	checkIfError(t, err)
+
+	err = SetWithFlags(tmp.Name(), UserPrefix+"flags-test", []byte("flags-test-attr-value"), XATTR_CREATE)
+	if err == nil {
+		t.Fatalf("XATTR_CREATE should have failed because the xattr already exists")
+	}
+	t.Log(err)
 
 	err = SetWithFlags(tmp.Name(), UserPrefix+"flags-test", []byte("flags-test-attr-value"), XATTR_REPLACE)
 	checkIfError(t, err)
+
+	err = Remove(tmp.Name(), UserPrefix+"flags-test")
+	checkIfError(t, err)
+
+	err = SetWithFlags(tmp.Name(), UserPrefix+"flags-test", []byte("flags-test-attr-value"), XATTR_REPLACE)
+	if err == nil {
+		t.Fatalf("XATTR_REPLACE should have failed because there is nothing to replace")
+	}
+	t.Log(err)
 }
