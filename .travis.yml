@@ -18,5 +18,5 @@ install:
   - go build
 
 script:
-  - sh .travis.sh
+  - ./.travis.sh
   - diff <(GOPATH="$PWD:$PWD/vendor" goimports -d .) <(printf "")
