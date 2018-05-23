@@ -10,6 +10,10 @@ Extended attribute support for Go (linux + darwin + freebsd).
 
 `SetWithFlags` allows to additionally pass system flags to be forwarded to the underlying calls, FreeBSD does not support this and the parameter will be ignored.
 
+The `L` variants of all functions (`LGet/LSet/...`) are identical to `Get/Set/...` except that they
+do not reference a symlink that appears at the end of a path. See
+[GoDoc](http://godoc.org/github.com/pkg/xattr) for details.
+
 ### Example
 ```go
   const path = "/tmp/myfile"
