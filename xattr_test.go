@@ -14,29 +14,45 @@ import (
 
 const UserPrefix = "user."
 
+type funcFamily struct {
+	familyName   string
+	get          func(path, name string) ([]byte, error)
+	set          func(path, name string, data []byte) error
+	setWithFlags func(path, name string, data []byte, flags int) error
+	remove       func(path, name string) error
+	list         func(path string) ([]string, error)
+}
+
 // Test Get, Set, List, Remove on a regular file
 func TestRegularFile(t *testing.T) {
-	doTestRegularFile(t, false)
-}
-
-// Test LGet, LSet, LList, LRemove on a regular file
-func TestRegularFileL(t *testing.T) {
-	doTestRegularFile(t, true)
-}
-
-func doTestRegularFile(t *testing.T, followSymlinks bool) {
-	setFunc := LSet
-	setWithFlagsFunc := LSetWithFlags
-	getFunc := LGet
-	removeFunc := LRemove
-	listFunc := LList
-	if followSymlinks {
-		setFunc = Set
-		setWithFlagsFunc = SetWithFlags
-		getFunc = Get
-		removeFunc = Remove
-		listFunc = List
+	families := []funcFamily{
+		{
+			familyName:   "Get and friends",
+			get:          Get,
+			set:          Set,
+			setWithFlags: SetWithFlags,
+			remove:       Remove,
+			list:         List,
+		},
+		{
+			familyName:   "LGet and friends",
+			get:          LGet,
+			set:          LSet,
+			setWithFlags: LSetWithFlags,
+			remove:       LRemove,
+			list:         LList,
+		},
 	}
+	for _, ff := range families {
+		t.Logf("Testing %q on a regular file", ff.familyName)
+		testRegularFile(t, ff)
+	}
+}
+
+// testRegularFile is called with the "Get and friends" and the
+// "LGet and friends" function family. Both families should behave
+// the same on a regular file.
+func testRegularFile(t *testing.T, ff funcFamily) {
 	tmp, err := ioutil.TempFile("", "")
 	if err != nil {
 		t.Fatal(err)
@@ -47,9 +63,9 @@ func doTestRegularFile(t *testing.T, followSymlinks bool) {
 	xVal := []byte("test-attr-value")
 
 	// Test that SetWithFlags succeeds and that the xattr shows up in List()
-	err = setWithFlagsFunc(tmp.Name(), xName, xVal, 0)
+	err = ff.setWithFlags(tmp.Name(), xName, xVal, 0)
 	checkIfError(t, err)
-	list, err := listFunc(tmp.Name())
+	list, err := ff.list(tmp.Name())
 	checkIfError(t, err)
 	found := false
 	for _, name := range list {
@@ -60,13 +76,13 @@ func doTestRegularFile(t *testing.T, followSymlinks bool) {
 	if !found {
 		t.Fatalf("List/LList did not return test attribute: %q", list)
 	}
-	err = removeFunc(tmp.Name(), xName)
+	err = ff.remove(tmp.Name(), xName)
 	checkIfError(t, err)
 
 	// Test that Set succeeds and that the the xattr shows up in List()
-	err = setFunc(tmp.Name(), xName, xVal)
+	err = ff.set(tmp.Name(), xName, xVal)
 	checkIfError(t, err)
-	list, err = listFunc(tmp.Name())
+	list, err = ff.list(tmp.Name())
 	checkIfError(t, err)
 	found = false
 	for _, name := range list {
@@ -79,7 +95,7 @@ func doTestRegularFile(t *testing.T, followSymlinks bool) {
 	}
 
 	var data []byte
-	data, err = getFunc(tmp.Name(), xName)
+	data, err = ff.get(tmp.Name(), xName)
 	checkIfError(t, err)
 
 	value := string(data)
@@ -88,7 +104,7 @@ func doTestRegularFile(t *testing.T, followSymlinks bool) {
 		t.Fail()
 	}
 
-	err = removeFunc(tmp.Name(), xName)
+	err = ff.remove(tmp.Name(), xName)
 	checkIfError(t, err)
 }
 
@@ -118,7 +134,8 @@ func TestNoData(t *testing.T) {
 	}
 }
 
-// Test that Get/LGet, Set/LSet etc operate as expected on symlinks.
+// Test that Get/LGet, Set/LSet etc operate as expected on symlinks. The
+// functions should behave differently when operating on a symlink.
 func TestSymlink(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
 	if err != nil {
