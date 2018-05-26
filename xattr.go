@@ -30,22 +30,19 @@ func (e *Error) Error() string {
 // Get retrieves extended attribute data associated with path. It will follow
 // all symlinks along the path.
 func Get(path, name string) ([]byte, error) {
-	return doGet(path, name, true)
+	return get(path, name, getxattr)
 }
 
 // LGet is like Get but does not follow a symlink at the end of the path.
 func LGet(path, name string) ([]byte, error) {
-	return doGet(path, name, false)
+	return get(path, name, lgetxattr)
 }
 
-// doGet contains the buffer allocation logic used by both Get and LGet.
-func doGet(path string, name string, followSymlinks bool) ([]byte, error) {
-	myname := "xattr.Get"
-	getxattrFunc := lgetxattr
-	if followSymlinks {
-		getxattrFunc = getxattr
-		myname = "xattr.LGet"
-	}
+type getxattrFunc func(path string, name string, data []byte) (int, error)
+
+// get contains the buffer allocation logic used by both Get and LGet.
+func get(path string, name string, getxattrFunc getxattrFunc) ([]byte, error) {
+	myname := "xattr.get"
 	// find size.
 	size, err := getxattrFunc(path, name, nil)
 	if err != nil {
@@ -118,23 +115,20 @@ func LRemove(path, name string) error {
 // List retrieves a list of names of extended attributes associated
 // with the given path in the file system.
 func List(path string) ([]string, error) {
-	return doList(path, true)
+	return list(path, listxattr)
 }
 
 // LList is like List but does not follow a symlink at the end of the
 // path.
 func LList(path string) ([]string, error) {
-	return doList(path, false)
+	return list(path, llistxattr)
 }
 
-// doList contains the buffer allocation logic used by both List and LList.
-func doList(path string, followSymlinks bool) ([]string, error) {
-	myname := "xattr.LList"
-	listxattrFunc := llistxattr
-	if followSymlinks {
-		listxattrFunc = listxattr
-		myname = "xattr.List"
-	}
+type listxattrFunc func(path string, data []byte) (int, error)
+
+// list contains the buffer allocation logic used by both List and LList.
+func list(path string, listxattrFunc listxattrFunc) ([]string, error) {
+	myname := "xattr.list"
 	// find size.
 	size, err := listxattrFunc(path, nil)
 	if err != nil {
