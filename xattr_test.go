@@ -142,7 +142,7 @@ func TestSymlink(t *testing.T) {
 		t.Fatal(err)
 	}
 	s := dir + "/symlink1"
-	err = os.Symlink("/some/nonexistent/path", s)
+	err = os.Symlink(dir+"/some/nonexistent/path", s)
 	if err != nil {
 		t.Fatal(err)
 	}
