@@ -4,27 +4,50 @@ package xattr
 
 import (
 	"syscall"
+
+	"golang.org/x/sys/unix"
 )
 
 const (
-	XATTR_CREATE  = 0x0001
-	XATTR_REPLACE = 0x0002
+	XATTR_CREATE  = unix.XATTR_CREATE
+	XATTR_REPLACE = unix.XATTR_REPLACE
+
+	// ENOATTR is not exported by the syscall package on Linux, because it is
+	// an alias for ENODATA. We export it here so it is available on all
+	// our supported platforms.
+	ENOATTR = syscall.ENODATA
 )
 
 func getxattr(path string, name string, data []byte) (int, error) {
 	return syscall.Getxattr(path, name, data)
 }
 
+func lgetxattr(path string, name string, data []byte) (int, error) {
+	return unix.Lgetxattr(path, name, data)
+}
+
 func setxattr(path string, name string, data []byte, flags int) error {
 	return syscall.Setxattr(path, name, data, flags)
+}
+
+func lsetxattr(path string, name string, data []byte, flags int) error {
+	return unix.Lsetxattr(path, name, data, flags)
 }
 
 func removexattr(path string, name string) error {
 	return syscall.Removexattr(path, name)
 }
 
+func lremovexattr(path string, name string) error {
+	return unix.Lremovexattr(path, name)
+}
+
 func listxattr(path string, data []byte) (int, error) {
 	return syscall.Listxattr(path, data)
+}
+
+func llistxattr(path string, data []byte) (int, error) {
+	return unix.Llistxattr(path, data)
 }
 
 // stringsFromByteSlice converts a sequence of attributes to a []string.
