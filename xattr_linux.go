@@ -19,7 +19,7 @@ const (
 )
 
 func getxattr(path string, name string, data []byte) (int, error) {
-	return syscall.Getxattr(path, name, data)
+	return unix.Getxattr(path, name, data)
 }
 
 func lgetxattr(path string, name string, data []byte) (int, error) {
@@ -27,7 +27,7 @@ func lgetxattr(path string, name string, data []byte) (int, error) {
 }
 
 func setxattr(path string, name string, data []byte, flags int) error {
-	return syscall.Setxattr(path, name, data, flags)
+	return unix.Setxattr(path, name, data, flags)
 }
 
 func lsetxattr(path string, name string, data []byte, flags int) error {
@@ -35,7 +35,7 @@ func lsetxattr(path string, name string, data []byte, flags int) error {
 }
 
 func removexattr(path string, name string) error {
-	return syscall.Removexattr(path, name)
+	return unix.Removexattr(path, name)
 }
 
 func lremovexattr(path string, name string) error {
@@ -43,7 +43,7 @@ func lremovexattr(path string, name string) error {
 }
 
 func listxattr(path string, data []byte) (int, error) {
-	return syscall.Listxattr(path, data)
+	return unix.Listxattr(path, data)
 }
 
 func llistxattr(path string, data []byte) (int, error) {
