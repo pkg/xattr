@@ -1,6 +1,7 @@
 [![GoDoc](https://godoc.org/github.com/pkg/xattr?status.svg)](http://godoc.org/github.com/pkg/xattr)
 [![Go Report Card](https://goreportcard.com/badge/github.com/pkg/xattr)](https://goreportcard.com/report/github.com/pkg/xattr)
 [![Build Status](https://travis-ci.org/pkg/xattr.svg?branch=master)](https://travis-ci.org/pkg/xattr)
+[![Version](https://badge.fury.io/gh/pkg%2Fxattr.svg)](https://github.com/pkg/xattr/releases)
 
 xattr
 =====
