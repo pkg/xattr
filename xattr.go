@@ -46,18 +46,24 @@ type getxattrFunc func(path string, name string, data []byte) (int, error)
 
 // get contains the buffer allocation logic used by both Get and LGet.
 func get(path string, name string, getxattrFunc getxattrFunc) ([]byte, error) {
-	// Start with a 1 kiB buffer for the xattr value
-	const initialBufSize = 1024
-	// The theoretical maximum xattr value size on MacOS is 64 MiB. On Linux it's
-	// much smaller at 64 kiB. Unless the kernel is evil or buggy, we should never
-	// hit the limit.
-	const maxBufSize = 64 * 1024 * 1024
-	// Function name as reported in error messages
-	const myname = "xattr.get"
+	const (
+		// Start with a 1 KB buffer for the xattr value
+		initialBufSize = 1024
+
+		// The theoretical maximum xattr value size on MacOS is 64 MB. On Linux it's
+		// much smaller at 64 KB. Unless the kernel is evil or buggy, we should never
+		// hit the limit.
+		maxBufSize = 64 * 1024 * 1024
+
+		// Function name as reported in error messages
+		myname = "xattr.get"
+	)
+
 	size := initialBufSize
 	for {
 		data := make([]byte, size)
 		read, err := getxattrFunc(path, name, data)
+
 		// If the buffer was too small to fit the value, Linux and MacOS react
 		// differently:
 		// Linux: returns an ERANGE error and "-1" bytes.
@@ -69,8 +75,8 @@ func get(path string, name string, getxattrFunc getxattrFunc) ([]byte, error) {
 		// double the buffer size without it being strictly neccessary.
 		if err == syscall.ERANGE || read == size {
 			// The buffer was too small. Try again.
-			size *= 2
-			if size > maxBufSize {
+			size <<= 1
+			if size >= maxBufSize {
 				return nil, &Error{myname, path, name, syscall.EOVERFLOW}
 			}
 			continue
