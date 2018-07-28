@@ -223,6 +223,29 @@ func TestSymlink(t *testing.T) {
 	}
 }
 
+// Verify that Get() handles values larger than the default buffer size (1 kiB)
+func TestLargeVal(t *testing.T) {
+	tmp, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmp.Name())
+	path := tmp.Name()
+
+	key := UserPrefix + "TestERANGE"
+	// On ext4, key + value length must be <= 4096. Use 4000 so we can test
+	// reliably on ext4.
+	val := bytes.Repeat([]byte("z"), 4000)
+	err = Set(path, key, val)
+	checkIfError(t, err)
+
+	val2, err := Get(path, key)
+	checkIfError(t, err)
+	if !bytes.Equal(val, val2) {
+		t.Errorf("wrong result from Get: want=%s have=%s", string(val), string(val2))
+	}
+}
+
 // checkIfError calls t.Skip() if the underlying syscall.Errno is
 // ENOTSUP or EOPNOTSUPP. It calls t.Fatal() on any other non-zero error.
 func checkIfError(t *testing.T, err error) {

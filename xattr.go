@@ -15,6 +15,10 @@ Get will follow "symlink1" and "symlink2" and operate on the target of
 */
 package xattr
 
+import (
+	"syscall"
+)
+
 // Error records an error and the operation, file path and attribute that caused it.
 type Error struct {
 	Op   string
@@ -42,22 +46,40 @@ type getxattrFunc func(path string, name string, data []byte) (int, error)
 
 // get contains the buffer allocation logic used by both Get and LGet.
 func get(path string, name string, getxattrFunc getxattrFunc) ([]byte, error) {
-	myname := "xattr.get"
-	// find size.
-	size, err := getxattrFunc(path, name, nil)
-	if err != nil {
-		return nil, &Error{myname, path, name, err}
-	}
-	if size > 0 {
+	// Start with a 1 kiB buffer for the xattr value
+	const initialBufSize = 1024
+	// The theoretical maximum xattr value size on MacOS is 64 MiB. On Linux it's
+	// much smaller at 64 kiB. Unless the kernel is evil or buggy, we should never
+	// hit the limit.
+	const maxBufSize = 64 * 1024 * 1024
+	// Function name as reported in error messages
+	const myname = "xattr.get"
+	size := initialBufSize
+	for {
 		data := make([]byte, size)
-		// Read into buffer of that size.
 		read, err := getxattrFunc(path, name, data)
+		// If the buffer was too small to fit the value, Linux and MacOS react
+		// differently:
+		// Linux: returns an ERANGE error and "-1" bytes.
+		// MacOS: truncates the value and returns "size" bytes. If the value
+		//   happens to be exactly as big as the buffer, we cannot know if it was
+		//   truncated, and we retry with a bigger buffer. Contrary to documentation,
+		//   MacOS never seems to return ERANGE!
+		// To keep the code simple, we always check both conditions, and sometimes
+		// double the buffer size without it being strictly neccessary.
+		if err == syscall.ERANGE || read == size {
+			// The buffer was too small. Try again.
+			size *= 2
+			if size > maxBufSize {
+				return nil, &Error{myname, path, name, syscall.EOVERFLOW}
+			}
+			continue
+		}
 		if err != nil {
 			return nil, &Error{myname, path, name, err}
 		}
 		return data[:read], nil
 	}
-	return []byte{}, nil
 }
 
 // Set associates name and data together as an attribute of path.
