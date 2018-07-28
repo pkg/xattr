@@ -223,7 +223,7 @@ func TestSymlink(t *testing.T) {
 	}
 }
 
-// Verify that Get() handles values larger than the default buffer size (1 kiB)
+// Verify that Get() handles values larger than the default buffer size (1 KB)
 func TestLargeVal(t *testing.T) {
 	tmp, err := ioutil.TempFile("", "")
 	if err != nil {
