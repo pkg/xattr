@@ -20,3 +20,6 @@ install:
 script:
   - ./.travis.sh
   - diff <(GOPATH="$PWD:$PWD/vendor" goimports -d .) <(printf "")
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
