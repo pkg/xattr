@@ -42,10 +42,20 @@ func TestRegularFile(t *testing.T) {
 			remove:       LRemove,
 			list:         LList,
 		},
+		{
+			familyName:   "FGet and friends",
+			get:          wrapFGet,
+			set:          wrapFSet,
+			setWithFlags: wrapFSetWithFlags,
+			remove:       wrapFRemove,
+			list:         wrapFList,
+		},
 	}
 	for _, ff := range families {
-		t.Logf("Testing %q on a regular file", ff.familyName)
-		testRegularFile(t, ff)
+		t.Run(ff.familyName, func(t *testing.T) {
+			t.Logf("Testing %q on a regular file", ff.familyName)
+			testRegularFile(t, ff)
+		})
 	}
 }
 
@@ -272,4 +282,51 @@ func unpackSysErr(err error) syscall.Errno {
 		log.Panicf("cannot unpack err=%#v", err)
 	}
 	return err2.Err.(syscall.Errno)
+}
+
+// wrappers to adapt "F" variants to the test
+
+func wrapFGet(path, name string) ([]byte, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return FGet(f, name)
+}
+
+func wrapFSet(path, name string, data []byte) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return FSet(f, name, data)
+}
+
+func wrapFSetWithFlags(path, name string, data []byte, flags int) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return FSetWithFlags(f, name, data, flags)
+}
+
+func wrapFRemove(path, name string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return FRemove(f, name)
+}
+
+func wrapFList(path string) ([]string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return FList(f)
 }
