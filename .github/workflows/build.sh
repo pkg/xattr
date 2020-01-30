@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 echo "Building for Linux..."
 GOOS=linux   go build
@@ -15,3 +15,4 @@ GOOS=windows go build
 echo "Running tests..."
 go vet
 go test -v -race -coverprofile=coverage.txt -covermode=atomic
+
