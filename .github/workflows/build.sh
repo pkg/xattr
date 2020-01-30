@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 echo "Building for Linux..."
 GOOS=linux   go build
