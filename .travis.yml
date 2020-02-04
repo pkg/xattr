@@ -3,6 +3,8 @@ sudo: false
 
 go:
   - "1.13.x"
+  - "1.12.x"
+  - "1.11.x"
 
 os:
   - linux
@@ -10,6 +12,7 @@ os:
   - windows
 
 before_install:
+  - export GO111MODULE=on
   - go version
   - go get golang.org/x/tools/cmd/goimports
 
