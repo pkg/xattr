@@ -10,6 +10,9 @@ import (
 )
 
 const (
+	// XATTR_SUPPORTED will be true if the current platform is supported
+	XATTR_SUPPORTED = true
+
 	XATTR_CREATE  = unix.XATTR_CREATE
 	XATTR_REPLACE = unix.XATTR_REPLACE
 
