@@ -2,8 +2,12 @@ language: go
 sudo: false
 
 go:
-  - "1.15.x"
+  - "1.11.x" # Debian 10 "Buster"
+  - "1.12.x" # Ubuntu 19.10
+  - "1.13.x" # Debian 11 "Bullseye"
   - "1.14.x"
+  - "1.15.x"
+  - stable   # Latest Go release
 
 os:
   - linux
