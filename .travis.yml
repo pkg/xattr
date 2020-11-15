@@ -16,6 +16,7 @@ os:
 before_install:
   - export GO111MODULE=on
   - go version
+  - go mod vendor
   - go get golang.org/x/tools/cmd/goimports
 
 install:
