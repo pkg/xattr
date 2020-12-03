@@ -1,4 +1,4 @@
-// +build !linux,!freebsd,!netbsd,!darwin
+// +build !linux,!freebsd,!netbsd,!darwin,!solaris
 
 package xattr
 
