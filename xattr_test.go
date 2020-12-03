@@ -1,4 +1,4 @@
-// +build linux darwin freebsd netbsd
+// +build linux darwin freebsd netbsd solaris
 
 package xattr
 
@@ -147,6 +147,9 @@ func TestNoData(t *testing.T) {
 // Test that Get/LGet, Set/LSet etc operate as expected on symlinks. The
 // functions should behave differently when operating on a symlink.
 func TestSymlink(t *testing.T) {
+	if runtime.GOOS == "solaris" || runtime.GOOS == "illumos" {
+		t.Skipf("extended attributes aren't supported for symlinks on %s", runtime.GOOS)
+	}
 	dir, err := ioutil.TempDir("", "")
 	if err != nil {
 		t.Fatal(err)
@@ -281,7 +284,11 @@ func unpackSysErr(err error) syscall.Errno {
 	if !ok {
 		log.Panicf("cannot unpack err=%#v", err)
 	}
-	return err2.Err.(syscall.Errno)
+	err3, ok := err2.Err.(syscall.Errno)
+	if !ok {
+		log.Panicf("cannot unpack err2=%#v", err2)
+	}
+	return err3
 }
 
 // wrappers to adapt "F" variants to the test
