@@ -9,6 +9,12 @@ GOOS=darwin  go build
 echo "Building for FreeBSD..."
 GOOS=freebsd go build
 
+echo "Building for NetBSD..."
+GOOS=netbsd go build
+
+echo "Building for Solaris Illumos..."
+GOOS=illumos go build 
+
 echo "Building for Windows...(dummy)"
 GOOS=windows go build
 
