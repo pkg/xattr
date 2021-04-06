@@ -3,7 +3,6 @@
 package xattr
 
 import (
-	"errors"
 	"os"
 	"syscall"
 
@@ -31,7 +30,7 @@ const (
 func ignoringEINTR(fn func() error) (err error) {
 	for {
 		err = fn()
-		if !errors.Is(err, unix.EINTR) {
+		if err != unix.EINTR {
 			break
 		}
 	}
