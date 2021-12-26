@@ -85,7 +85,7 @@ func get(path string, name string, getxattrFunc getxattrFunc) ([]byte, error) {
 		//   truncated, and we retry with a bigger buffer. Contrary to documentation,
 		//   MacOS never seems to return ERANGE!
 		// To keep the code simple, we always check both conditions, and sometimes
-		// double the buffer size without it being strictly neccessary.
+		// double the buffer size without it being strictly necessary.
 		if err == syscall.ERANGE || read == size {
 			// The buffer was too small. Try again.
 			size <<= 1
