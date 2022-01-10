@@ -29,8 +29,29 @@ type Error struct {
 	Err  error
 }
 
-func (e *Error) Error() string {
-	return e.Op + " " + e.Path + " " + e.Name + ": " + e.Err.Error()
+func (e *Error) Error() (errstr string) {
+	if e.Op != "" {
+		errstr += e.Op
+	}
+	if e.Path != "" {
+		if errstr != "" {
+			errstr += " "
+		}
+		errstr += e.Path
+	}
+	if e.Name != "" {
+		if errstr != "" {
+			errstr += " "
+		}
+		errstr += e.Name
+	}
+	if e.Err != nil {
+		if errstr != "" {
+			errstr += ": "
+		}
+		errstr += e.Err.Error()
+	}
+	return
 }
 
 // Get retrieves extended attribute data associated with path. It will follow
