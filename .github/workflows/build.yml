@@ -19,6 +19,8 @@ jobs:
 
     - name: Build
       run: |
+        GOOS=freebsd go build        
+        GOOS=windows go build
         go build -v .
 
     - name: Test
