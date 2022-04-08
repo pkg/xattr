@@ -1,3 +1,4 @@
+//go:build linux || darwin || freebsd || netbsd || solaris
 // +build linux darwin freebsd netbsd solaris
 
 package xattr
