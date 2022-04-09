@@ -1,3 +1,4 @@
+//go:build solaris
 // +build solaris
 
 package xattr
@@ -90,7 +91,7 @@ func removexattr(path string, name string) error {
 	if err != nil {
 		return err
 	}
-	f := os.NewFile(uintptr(fd), path);
+	f := os.NewFile(uintptr(fd), path)
 	defer func() {
 		_ = f.Close()
 	}()
