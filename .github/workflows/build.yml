@@ -19,6 +19,7 @@ jobs:
 
     - name: Build
       run: |
+        go get -u golang.org/x/sys
         GOOS=freebsd go build        
         GOOS=windows go build
         go build -v .
