@@ -24,7 +24,7 @@ const (
 )
 
 func getxattr(path string, name string, data []byte) (int, error) {
-	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	f, err := os.OpenFile(path, os.O_RDONLY|unix.O_NONBLOCK, 0)
 	if err != nil {
 		return 0, err
 	}
@@ -50,7 +50,7 @@ func fgetxattr(f *os.File, name string, data []byte) (int, error) {
 }
 
 func setxattr(path string, name string, data []byte, flags int) error {
-	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	f, err := os.OpenFile(path, os.O_RDONLY|unix.O_NONBLOCK, 0)
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func fremovexattr(f *os.File, name string) error {
 }
 
 func listxattr(path string, data []byte) (int, error) {
-	f, err := os.OpenFile(path, os.O_RDONLY, 0)
+	f, err := os.OpenFile(path, os.O_RDONLY|unix.O_NONBLOCK, 0)
 	if err != nil {
 		return 0, err
 	}
@@ -152,7 +152,7 @@ func flistxattr(f *os.File, data []byte) (int, error) {
 }
 
 // stringsFromByteSlice converts a sequence of attributes to a []string.
-// On Darwin and Linux, each entry is a NULL-terminated string.
+// We simulate Linux/Darwin, where each entry is a NULL-terminated string.
 func stringsFromByteSlice(buf []byte) (result []string) {
 	offset := 0
 	for index, b := range buf {
