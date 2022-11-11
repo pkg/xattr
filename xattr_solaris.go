@@ -87,7 +87,8 @@ func fsetxattr(f *os.File, name string, data []byte, flags int) error {
 }
 
 func removexattr(path string, name string) error {
-	fd, err := unix.Open(path, unix.O_RDONLY|unix.O_XATTR, 0)
+	mode := unix.O_RDONLY | unix.O_XATTR | unix.O_NONBLOCK | unix.O_CLOEXEC
+	fd, err := unix.Open(path, mode, 0)
 	if err != nil {
 		return err
 	}
