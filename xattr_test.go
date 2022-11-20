@@ -8,9 +8,12 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
 	"syscall"
 	"testing"
+
+	"golang.org/x/sys/unix"
 )
 
 const UserPrefix = "user."
@@ -258,6 +261,30 @@ func TestLargeVal(t *testing.T) {
 	if !bytes.Equal(val, val2) {
 		t.Errorf("wrong result from Get: want=%s have=%s", string(val), string(val2))
 	}
+}
+
+// Get should work on a FIFO that is not opened by any other process.
+// This is mainly relevant on Solaris, where getting the attributes
+// requires opening the file and doing that the wrong way blocks the caller.
+func TestFIFO(t *testing.T) {
+	d, err := ioutil.TempDir("", "pkg-xattr-testfifo-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log("tempdir:", d)
+	defer os.RemoveAll(d)
+
+	fifo := filepath.Join(d, "fifo")
+	err = unix.Mkfifo(fifo, 0777)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// We only care about this not blocking.
+	_ = Set(fifo, "foo", []byte("bar"))
+	_, _ = Get(fifo, "foo")
+	_, _ = List(fifo)
+	_ = Remove(fifo, "foo")
 }
 
 // checkIfError calls t.Skip() if the underlying syscall.Errno is
