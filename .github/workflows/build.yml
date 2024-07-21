@@ -20,7 +20,6 @@ jobs:
     - name: Build
       run: |
         GOOS=freebsd go build
-        GOOS=windows go build
         GOOS=openbsd go build
         go build -v .
 
