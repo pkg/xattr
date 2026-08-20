@@ -71,7 +71,7 @@ func LGet(path, name string) ([]byte, error) {
 	})
 }
 
-// FGet is like Get but accepts a os.File instead of a file path.
+// FGet is like Get but accepts an os.File instead of a file path.
 func FGet(f *os.File, name string) ([]byte, error) {
 	return get(f.Name(), name, func(name string, data []byte) (int, error) {
 		return fgetxattr(f, name, data)
@@ -142,7 +142,7 @@ func LSet(path, name string, data []byte) error {
 	return nil
 }
 
-// FSet is like Set but accepts a os.File instead of a file path.
+// FSet is like Set but accepts an os.File instead of a file path.
 func FSet(f *os.File, name string, data []byte) error {
 	if err := fsetxattr(f, name, data, 0); err != nil {
 		return &Error{"xattr.FSet", f.Name(), name, err}
@@ -168,7 +168,7 @@ func LSetWithFlags(path, name string, data []byte, flags int) error {
 	return nil
 }
 
-// FSetWithFlags is like SetWithFlags but accepts a os.File instead of a file path.
+// FSetWithFlags is like SetWithFlags but accepts an os.File instead of a file path.
 func FSetWithFlags(f *os.File, name string, data []byte, flags int) error {
 	if err := fsetxattr(f, name, data, flags); err != nil {
 		return &Error{"xattr.FSetWithFlags", f.Name(), name, err}
@@ -193,7 +193,7 @@ func LRemove(path, name string) error {
 	return nil
 }
 
-// FRemove is like Remove but accepts a os.File instead of a file path.
+// FRemove is like Remove but accepts an os.File instead of a file path.
 func FRemove(f *os.File, name string) error {
 	if err := fremovexattr(f, name); err != nil {
 		return &Error{"xattr.FRemove", f.Name(), name, err}
@@ -217,7 +217,7 @@ func LList(path string) ([]string, error) {
 	})
 }
 
-// FList is like List but accepts a os.File instead of a file path.
+// FList is like List but accepts an os.File instead of a file path.
 func FList(f *os.File) ([]string, error) {
 	return list(f.Name(), func(data []byte) (int, error) {
 		return flistxattr(f, data)
