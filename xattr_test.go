@@ -5,6 +5,7 @@ package xattr
 
 import (
 	"bytes"
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -365,3 +366,27 @@ func wrapFList(path string) ([]string, error) {
 	defer f.Close()
 	return FList(f)
 }
+
+func TestError(t *testing.T) {
+	origErr := errors.New("underlying error")
+	e := &Error{
+		Op:   "xattr.Get",
+		Path: "/test/path",
+		Name: "user.attr",
+		Err:  origErr,
+	}
+
+	if !errors.Is(e, origErr) {
+		t.Errorf("expected errors.Is(e, origErr) to be true")
+	}
+
+	if e.Unwrap() != origErr {
+		t.Errorf("expected Unwrap() to return origErr")
+	}
+
+	expectedStr := "xattr.Get /test/path user.attr: underlying error"
+	if e.Error() != expectedStr {
+		t.Errorf("expected Error() = %q, got %q", expectedStr, e.Error())
+	}
+}
+
