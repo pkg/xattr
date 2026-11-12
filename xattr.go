@@ -229,23 +229,32 @@ type listxattrFunc func(data []byte) (int, error)
 // list contains the buffer allocation logic used by both List and LList.
 func list(path string, listxattrFunc listxattrFunc) ([]string, error) {
 	myname := "xattr.list"
-	// find size.
-	size, err := listxattrFunc(nil)
-	if err != nil {
-		return nil, &Error{myname, path, "", err}
-	}
-	if size > 0 {
-		// `size + 1` because of ERANGE error when reading
-		// from a SMB1 mount point (https://github.com/pkg/xattr/issues/16).
-		buf := make([]byte, size+1)
-		// Read into buffer of that size.
-		read, err := listxattrFunc(buf)
+	// Bound retries so a continuously changing list cannot prevent return.
+	const maxAttempts = 10
+	for attempt := 0; ; attempt++ {
+		// find size.
+		size, err := listxattrFunc(nil)
 		if err != nil {
 			return nil, &Error{myname, path, "", err}
 		}
-		return stringsFromByteSlice(buf[:read]), nil
+		if size > 0 {
+			// `size + 1` because of ERANGE error when reading
+			// from a SMB1 mount point (https://github.com/pkg/xattr/issues/16).
+			buf := make([]byte, size+1)
+			// Read into buffer of that size.
+			read, err := listxattrFunc(buf)
+			if err == syscall.ERANGE && attempt+1 < maxAttempts {
+				// The attribute names grew after the size query. Retry with
+				// the current size, keeping the SMB1 spare byte above.
+				continue
+			}
+			if err != nil {
+				return nil, &Error{myname, path, "", err}
+			}
+			return stringsFromByteSlice(buf[:read]), nil
+		}
+		return []string{}, nil
 	}
-	return []string{}, nil
 }
 
 // bytePtrFromSlice returns a pointer to array of bytes and a size.
